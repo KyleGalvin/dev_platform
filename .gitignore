@@ -1,0 +1,9 @@
+﻿bin/
+obj/
+.vs/
+node_modules/
+.mono/
+/kubernetes/secrets.yml
+/helm/seasprig/charts
+/typescript/gateway/build
+/values.yaml

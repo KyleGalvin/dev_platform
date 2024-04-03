@@ -1,0 +1,19 @@
+definitions:
+  domain: example.com
+  developeremail: &email admin@example.com
+  quizbuilder:
+    clientsecret: 0123456789ABCDEF0123456789ABCDEF
+  database:
+    adminusername: &databaseadmin admin
+    adminpassword: &databasepassword admin
+  keycloak:
+    adminusername: &keycloakadmin admin
+    adminpassword: &keycloakpassword admin
+  gitea:
+    adminusername: &giteaadmin gitea
+    adminpassword: &giteapassword giteaadmin
+    clientsecret: &giteaclientsecret abcdefghijklmnopqrstuvwxyzABCDEF
+    runnerregistration: 888899999aaaaabbbbbcccccddddddeeeeefffff
+  dnsprovider:
+    username: &dnsusernamevar admin
+    apikey: &dnsapikeyvar 0123456789ABCDEF0123456789ABCDEF

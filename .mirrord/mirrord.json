@@ -1,0 +1,12 @@
+{
+    "feature": {
+      "network": {
+        "incoming": {
+          "ignore_localhost": true
+        },
+        "outgoing": {
+          "ignore_localhost": true
+        }
+      }
+    }
+}

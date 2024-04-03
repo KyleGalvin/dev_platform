@@ -1,0 +1,294 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quizbuilder
+spec:
+  selector:
+    matchLabels:
+      app: quizbuilder
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: quizbuilder
+    spec:
+      containers:
+      - name: quizbuilder
+        image: quizbuilder
+        ports:
+        -- containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: env-vars
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitearunner
+spec:
+  selector:
+    matchLabels:
+      app: gitearunner
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gitearunner
+    spec:
+      volumes:
+      - name: docker-certs
+        emptyDir: {}
+      containers:
+      - name: gitearunner
+        image: gitea/act_runner:nightly
+        command: ["sh", "-c", "while ! nc -z localhost 2376 </dev/null; do echo 'waiting for docker daemon...'; sleep 5; done; /sbin/tini -- /opt/act/run.sh"]
+        envFrom:
+        - configMapRef:
+            name: env-vars
+        env:
+        - name: DOCKER_HOST
+          value: tcp://localhost:2376
+        - name: DOCKER_CERT_PATH
+          value: /certs/client
+        - name: DOCKER_TLS_VERIFY
+          value: "1"
+        volumeMounts:
+        - name: docker-certs
+          mountPath: /certs
+      - name: daemon
+        image: docker:23.0.6-dind
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: /certs
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: docker-certs
+          mountPath: /certs
+          
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: quizbuilder
+spec:
+  selector:
+      app: quizbuilder
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+spec:
+  selector:
+    matchLabels:
+      app: client
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+      - name: client
+        image: client
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: env-vars
+        env:
+        - name: PORT
+          value: "80"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+spec:
+  selector:
+      app: client
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+    
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  selector:
+    matchLabels:
+      app: gateway
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: gateway
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: env-vars
+        env:
+        - name: PORT
+          value: "80"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+      app: gateway
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+    
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: installationjob
+spec:
+  template:
+    spec:
+      containers:
+      - name: installationjob
+        image: installationjob
+        envFrom:
+        - configMapRef:
+            name: env-vars
+        env:
+        - name: POSTGRES_USER
+          value: {{ .Values.definitions.database.adminusername }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.definitions.database.adminpassword }}
+      restartPolicy: Never
+  backoffLimit: 4
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: {{ .Values.definitions.database.port }}
+        envFrom:
+        - configMapRef:
+            name: env-vars
+        env:
+        - name: POSTGRES_USER
+          value: {{ .Values.definitions.database.adminusername }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.definitions.database.adminpassword }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+      app: postgres
+  ports:
+  - protocol: TCP
+    port: {{ .Values.definitions.database.port }}
+    targetPort: {{ .Values.definitions.database.port }}
+    
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mkdocs
+spec:
+  selector:
+    matchLabels:
+      app: mkdocs
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mkdocs
+    spec:
+      containers:
+      - name: mkdocs
+        image: mkdocs
+        ports:
+        - containerPort: 8000
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mkdocs
+spec:
+  selector:
+      app: mkdocs
+  ports:
+  - name: web
+    protocol: TCP
+    port: 80
+    targetPort: 8000
+
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: cors
+spec:
+  headers:
+    accessControlAllowMethods:
+      - "GET"
+      - "POST"
+      - "DELETE"
+      - "OPTIONS"
+      - "PUT"
+    accessControlAllowHeaders:
+      - "*"
+    accessControlAllowOriginList:
+      - "*"
+    accessControlMaxAge: 100
+    addVaryHeader: true

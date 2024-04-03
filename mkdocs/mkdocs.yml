@@ -1,0 +1,80 @@
+site_name: SeaSprig Documentation
+site_url: https://docs.seasprig.dev/
+site_description: Project documentation with Markdown.
+site_author: MkDocs Team
+
+edit_uri: blob/master/docs/
+
+theme:
+  name: mkdocs
+  locale: en
+  logo: assets/img/dracula.png
+  favicon: assets/img/favicon.ico
+  font:
+    text: Roboto
+  analytics: {gtag: 'G-274394082'}
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - django
+
+#nav:
+#  - Home: index.md
+#  - Getting Started: getting-started.md
+#  - User Guide: user-guide/
+#  - Developer Guide: dev-guide/
+#  - About:
+#    - Release Notes: about/release-notes.md
+#    - Contributing: about/contributing.md
+#    - License: about/license.md
+
+exclude_docs: |
+  *.py
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - attr_list
+  - def_list
+  - tables
+  - pymdownx.highlight:
+      use_pygments: false
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.snippets
+  - pymdownx.superfences
+  #- callouts
+  #- mdx_gh_links:
+  #    user: mkdocs
+  #    repo: mkdocs
+  #- mkdocs-click
+
+hooks:
+  - docs/hooks.py
+
+extra_css:
+  - css/extra.css
+
+plugins:
+  - search
+  - redirects:
+      redirect_maps:
+        user-guide/plugins.md: dev-guide/plugins.md
+        user-guide/custom-themes.md: dev-guide/themes.md
+        user-guide/styling-your-docs.md: user-guide/choosing-your-theme.md
+  #- autorefs
+  #- literate-nav:
+  #    nav_file: README.md
+  #    implicit_index: true
+  #- mkdocstrings:
+  #    handlers:
+  #      python:
+  #        options:
+  #          docstring_section_style: list
+  #          members_order: source
+  #          show_root_heading: true
+  #          show_source: false
+  #          show_signature_annotations: true
+
+dev_addr: ‘0.0.0.0:8000’
