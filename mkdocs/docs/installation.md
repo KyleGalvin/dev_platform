@@ -79,6 +79,14 @@ necessary to run:
 
 recommended for development:
 
+If you want to open the browser on windows when launching tilt in wsl2:
+
+```
+sudo add-apt-repository ppa:wslutilities/wslu
+sudo apt update
+sudo apt install wslu
+```
+
 ```
 sudo apt-get install -y dotnet-sdk-8.0
 ```

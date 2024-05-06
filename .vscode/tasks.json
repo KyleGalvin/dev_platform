@@ -16,9 +16,9 @@
                 "${workspaceRoot}/.mirrord/mirrord.json",
                 "/usr/bin/dotnet",
                 "test",
-                //"--",
-                //"--filter",
-                //"TESTNAME",
+                "--",
+                "--filter",
+                "UserCanCreateQuiz",
                 "${workspaceRoot}/dotnet/XUnitIntegrationTests/XUnitIntegrationTests.csproj"
              ], 
             "options": 

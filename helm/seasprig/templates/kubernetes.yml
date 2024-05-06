@@ -110,6 +110,92 @@ spec:
         env:
         - name: PORT
           value: "80"
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql
+spec:
+  selector:
+    matchLabels:
+      app: mssql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      containers:
+      - name: mssql
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+        - containerPort: 1433
+        envFrom:
+        - configMapRef:
+            name: env-vars
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_SA_PASSWORD
+          value: "StR0ngP@ssword!"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql
+spec:
+  selector:
+      app: mssql
+  ports:
+  - protocol: TCP
+    port: 1433
+    targetPort: 1433
+    
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: oligarchy
+spec:
+  selector:
+      app: oligarchy
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+    
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oligarchy
+spec:
+  selector:
+    matchLabels:
+      app: oligarchy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: oligarchy
+    spec:
+      containers:
+      - name: oligarchy
+        image: oligarchy
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: env-vars
+        env:
+        - name: PORT
+          value: "80"
 
 ---
 

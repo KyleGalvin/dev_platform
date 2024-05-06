@@ -47,6 +47,30 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
+  name: oligarchy
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: (Host(`oligarchy.{{ .Values.definitions.domain }}`))
+    kind: Rule
+    services:
+    - name: oligarchy
+      port: http
+    middlewares:
+      - name: cors
+  tls:
+    certResolver: letsencrypt
+    domains:
+    - main: {{ .Values.definitions.domain }}
+      sans:
+      - '*.{{ .Values.definitions.domain }}'
+
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
   name: identity
 spec:
   entryPoints:
